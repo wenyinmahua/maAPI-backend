@@ -1,0 +1,2 @@
+# SpringBoot starter
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.mahua.mahuaclientsdk.MahuaAPIClientConfig
