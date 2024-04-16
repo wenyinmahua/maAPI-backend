@@ -2,6 +2,7 @@ package com.mahua.maapibackend.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.gson.Gson;
 import com.mahua.maapibackend.annotation.AuthCheck;
 import com.mahua.maapibackend.common.BaseResponse;
 import com.mahua.maapibackend.common.DeleteRequest;
@@ -9,10 +10,7 @@ import com.mahua.maapibackend.common.ErrorCode;
 import com.mahua.maapibackend.common.ResultUtils;
 import com.mahua.maapibackend.constant.CommonConstant;
 import com.mahua.maapibackend.exception.BusinessException;
-import com.mahua.maapibackend.model.dto.interfaceinfo.InterfaceAddRequest;
-import com.mahua.maapibackend.model.dto.interfaceinfo.InterfaceOnlineOrOfflineRequest;
-import com.mahua.maapibackend.model.dto.interfaceinfo.InterfaceQueryRequest;
-import com.mahua.maapibackend.model.dto.interfaceinfo.InterfaceUpdateRequest;
+import com.mahua.maapibackend.model.dto.interfaceinfo.*;
 import com.mahua.maapibackend.model.entity.InterfaceInfo;
 import com.mahua.maapibackend.model.entity.User;
 import com.mahua.maapibackend.model.enums.InterfaceInfoStatusEnum;
@@ -271,6 +269,40 @@ public class InterfaceController {
         offlineInterfaceInfo.setStatus(InterfaceInfoStatusEnum.OFFLINE.getValue());
         boolean result = interfaceinfoService.updateById(offlineInterfaceInfo);
         return ResultUtils.success(result);
+    }
+
+
+    /**
+     * 测试调用
+     *
+     * @param interfaceInfoInvokeRequest
+     * @return
+     */
+    @PostMapping("/invoke")
+    @AuthCheck(mustRole = "admin")
+    public BaseResponse<String> invokeInterface(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest, HttpServletRequest request) {
+        if (interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        long id = interfaceInfoInvokeRequest.getId();
+        String userRequestParams = interfaceInfoInvokeRequest.getUserRequestParams();
+        // 判断是否存在
+        InterfaceInfo oldInterface = interfaceinfoService.getById(id);
+        if (oldInterface == null) {
+            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
+        }
+        if (oldInterface.getStatus().intValue() == InterfaceInfoStatusEnum.OFFLINE.getValue()){
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口已下线");
+        }
+        User loginUser = userService.getLoginUser(request);
+
+        String accessKey = loginUser.getAccessKey();
+        String secretKey = loginUser.getSecretKey();
+        MaHuaAPIClient userAPIClient = new MaHuaAPIClient(accessKey,secretKey);
+        Gson gson = new Gson();
+        com.mahua.mahuaclientsdk.model.User user = gson.fromJson(userRequestParams, com.mahua.mahuaclientsdk.model.User.class);
+        String nameByPostJson = userAPIClient.getNameByPostJson(user);
+        return ResultUtils.success(nameByPostJson);
     }
 
 
