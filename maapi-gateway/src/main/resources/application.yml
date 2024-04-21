@@ -1,0 +1,20 @@
+server:
+  port: 8090
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: api_route
+          uri: http://localhost:8081/
+          predicates:
+            - Path=/api/name/{api_url}
+
+logging:
+  level:
+    org:
+      springframework:
+        cloud:
+          gateway: trace
+  file:
+    path: logs
