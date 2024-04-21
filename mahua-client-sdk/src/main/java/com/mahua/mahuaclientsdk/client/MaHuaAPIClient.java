@@ -13,6 +13,8 @@ import static com.mahua.mahuaclientsdk.utils.SignUtil.getSign;
 
 public class MaHuaAPIClient {
 
+	private final String GATEWAY_URL = "localhost:8090";
+
 	String accessKey;
 	String secretKet;
 
@@ -25,7 +27,7 @@ public class MaHuaAPIClient {
 		//可以单独传入http参数，这样参数会自动做URL编码，拼接在URL中
 		HashMap<String, Object> paramMap = new HashMap<>();
 		paramMap.put("name", name);
-		String result= HttpUtil.get("http://localhost:8081/api/name/", paramMap);
+		String result= HttpUtil.get(GATEWAY_URL + "/api/name/get", paramMap);
 		System.out.println(result);
 		return result;
 	}
@@ -33,7 +35,7 @@ public class MaHuaAPIClient {
 	public String getNameByPostURL(String name){
 		HashMap<String, Object> paramMap = new HashMap<>();
 		paramMap.put("name", name);
-		String result= HttpUtil.post("http://localhost:8081/api/name/", paramMap);
+		String result= HttpUtil.post(GATEWAY_URL + "/api/name/post", paramMap);
 		System.out.println(result);
 		return result;
 	}
@@ -41,7 +43,7 @@ public class MaHuaAPIClient {
 	public String getNameByPostJson(User user){
 		String body = JSONUtil.toJsonStr(user);
 
-		String result = HttpRequest.post("http://localhost:8081/api/name/user")
+		String result = HttpRequest.post(GATEWAY_URL + "/api/name/user")
 				.body(body)
 				.addHeaders(getHeaderMap(body))
 				.execute().body();
