@@ -11,14 +11,15 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/name")
 public class InterfaceController {
 
-	@GetMapping("/")
-	public String getNameByGet(String name){
+	private final Long FIVE_MINUTE=60*5l;
 
-		return "GET your name is" + name;
+	@GetMapping("/get")
+	public String getNameByGet(String name,HttpServletRequest request){
+		return "GET your name is " + name;
 	}
 
 
-	@PostMapping("/")
+	@PostMapping("/post")
 	public String getNameByPostURL(@RequestParam String name){
 		return "POST your name is " + name;
 	}
@@ -40,7 +41,7 @@ public class InterfaceController {
 		}
 		// 时间和当前时间不能超过5分钟
 		long currentTimestamp = System.currentTimeMillis() /1000;
-		if(currentTimestamp - Long.valueOf(timestamp) >= 5){
+		if(currentTimestamp - Long.valueOf(timestamp) >= FIVE_MINUTE){
 			throw new RuntimeException("无权限");
 		}
 		// todo 实际情况使从数据库中查出 secretKey
