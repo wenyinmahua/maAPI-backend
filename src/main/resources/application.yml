@@ -27,3 +27,14 @@ mahuaapi:
   client:
     access-key: mahua
     secret-key: 123456
+dubbo:
+  config-center:
+    timeout: 40000
+  application:
+    name: dubbo-springboot-demo-provider
+  protocol:
+    name: dubbo
+    port: -1
+  registry:
+    id: nacos-registry
+    address: nacos://192.168.25.147:8848
