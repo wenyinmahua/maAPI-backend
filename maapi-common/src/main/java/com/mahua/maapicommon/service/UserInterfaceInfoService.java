@@ -1,7 +1,10 @@
-package com.mahua.maapibackend.service;
+package com.mahua.maapicommon.service;
 
-import com.mahua.maapibackend.model.entity.UserInterfaceInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.mahua.maapicommon.model.entity.InterfaceInfo;
+import com.mahua.maapicommon.model.entity.User;
+import com.mahua.maapicommon.model.entity.UserInterfaceInfo;
+
 
 /**
 * @author mahua
@@ -9,6 +12,10 @@ import com.baomidou.mybatisplus.extension.service.IService;
 * @createDate 2024-04-16 15:23:24
 */
 public interface UserInterfaceInfoService extends IService<UserInterfaceInfo> {
+
+
+
+
 
 	void validUserInterface(UserInterfaceInfo interfaceInfo, boolean add);
 

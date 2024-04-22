@@ -5,18 +5,18 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mahua.maapibackend.common.ErrorCode;
 import com.mahua.maapibackend.constant.UserConstant;
-import com.mahua.maapibackend.model.entity.User;
 import com.mahua.maapibackend.exception.BusinessException;
-import com.mahua.maapibackend.service.UserService;
 import com.mahua.maapibackend.mapper.UserMapper;
+import com.mahua.maapibackend.service.UserService;
+import com.mahua.maapicommon.model.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.Random;
 
 /**
 * @author mahua

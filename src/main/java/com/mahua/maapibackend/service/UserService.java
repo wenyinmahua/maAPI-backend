@@ -1,7 +1,8 @@
 package com.mahua.maapibackend.service;
 
-import com.mahua.maapibackend.model.entity.User;
+
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.mahua.maapicommon.model.entity.User;
 
 import javax.servlet.http.HttpServletRequest;
 

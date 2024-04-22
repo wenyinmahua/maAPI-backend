@@ -1,7 +1,8 @@
 package com.mahua.maapibackend.service;
 
-import com.mahua.maapibackend.model.entity.InterfaceInfo;
+
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.mahua.maapicommon.model.entity.InterfaceInfo;
 
 /**
 * @author mahua

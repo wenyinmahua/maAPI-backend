@@ -3,9 +3,10 @@ package com.mahua.maapibackend.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mahua.maapibackend.common.ErrorCode;
 import com.mahua.maapibackend.exception.BusinessException;
-import com.mahua.maapibackend.model.entity.InterfaceInfo;
+
 import com.mahua.maapibackend.service.InterfaceInfoService;
 import com.mahua.maapibackend.mapper.InterfaceInfoMapper;
+import com.mahua.maapicommon.model.entity.InterfaceInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

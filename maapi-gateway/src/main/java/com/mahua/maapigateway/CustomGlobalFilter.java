@@ -2,8 +2,15 @@ package com.mahua.maapigateway;
 
 
 import cn.hutool.json.JSONObject;
+import com.mahua.maapicommon.model.entity.InterfaceInfo;
+import com.mahua.maapicommon.model.entity.User;
+import com.mahua.maapicommon.model.entity.UserInterfaceInfo;
+import com.mahua.maapicommon.service.InnerInterfaceService;
+import com.mahua.maapicommon.service.InnerUserService;
+import com.mahua.maapicommon.service.UserInterfaceInfoService;
 import com.mahua.mahuaclientsdk.utils.SignUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.dubbo.config.annotation.DubboReference;
 import org.reactivestreams.Publisher;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -35,15 +42,26 @@ import java.util.List;
 @Component
 public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
+	@DubboReference
+	private InnerUserService innerUserService;
+
+	@DubboReference
+	private InnerInterfaceService innerInterfaceService;
+
+	@DubboReference
+	private UserInterfaceInfoService userInterfaceInfoService;
+
 	private static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1");
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		// 1.用户发送请求到 API 网关
 		// 2.请求日志
 		ServerHttpRequest request = exchange.getRequest();
-		log.info("请求方式:"+request.getMethod());
+		String path = request.getPath().toString();
+		String method = request.getMethod().toString();
+		log.info("请求方式:"+method);
 		log.info("请求参数:"+ request.getQueryParams());
-		log.info("请求地址:"+request.getLocalAddress().getHostString());
+		log.info("请求地址:"+path);
 		log.info("请求源地址" + request.getRemoteAddress().getHostString());
 		// 3.黑白名单
 		ServerHttpResponse response = exchange.getResponse();
@@ -57,10 +75,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 		String timestamp = headers.getFirst("timestamp");
 		String sign = headers.getFirst("sign");
 		String body = headers.getFirst("body");
-		// todo 实际情况是从数据库中查询是否已分配给用户
-		if (!accessKey.equals("mahua")){
-			return handleNoAuth(response);
-		}
+
 		if(Long.valueOf(nonce) > 10000){
 			return handleNoAuth(response);
 		}
@@ -70,27 +85,36 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 		if(currentTimestamp - Long.valueOf(timestamp) >= FIVE_MINUTES){
 			throw new RuntimeException("无权限");
 		}
-		// todo 实际情况使从数据库中查出 secretKey
-		String serverSign = SignUtil.getSign(body,"123456");
+		// 5. 实际情况是从数据库中查询是否已分配给用户
+		User invokeUser = null;
+		try{
+			invokeUser = innerUserService.getInvokeUser(accessKey);
+		}catch (Exception e){
+			log.error("getInvokeUser error", e);
+		}
+		if (invokeUser == null){
+			return handleInvokeError(response);
+		}
+		if (!accessKey.equals(invokeUser.getAccessKey())){
+			return handleNoAuth(response);
+		}
+
+		// 实际情况使从数据库中查出 secretKey
+		String serverSign = SignUtil.getSign(body,invokeUser.getSecretKey());
 		if(!serverSign.equals(sign)){
 			return handleNoAuth(response);
 		}
-		// todo 5.从数据库中查询，请求的模拟接口是否存在，以及请求参数是否匹配
-		// 6.请求转发，调用模拟接口
-		Mono<Void> filter = chain.filter(exchange);
-		// 7.响应日志
+		// 5.从数据库中查询，请求的模拟接口是否存在，以及请求参数是否匹配
+		InterfaceInfo interfaceInfo = null;
+
+		try{
+			interfaceInfo = innerInterfaceService.getInterfaceInfo(path, method);
+		}catch (Exception e){
+			log.error("getInvokeUser error", e);
+		}
+		// 6.请求转发，调用模拟接口 + 响应日志
 		log.info("响应："+response.getStatusCode());
-		return handleResponse(exchange,chain);
-		// todo 8.调用成功，接口调用次数 + 1 ,接口调用 invokeCount()方法
-//		if (response.getStatusCode() == HttpStatus.OK){
-//
-//		} else {
-//			return handleInvokeError(response);
-//
-//		}
-//		// 9.调用失败，返回一个规范的错误码
-//		log.info("custom global filter");
-//		return filter;
+		return handleResponse(exchange,chain,interfaceInfo.getId(),invokeUser.getId());
 }
 
 	public Mono<Void> handleNoAuth(ServerHttpResponse response){
@@ -109,7 +133,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 	 * @param chain
 	 * @return
 	 */
-	public Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain) {
+	public Mono<Void> handleResponse(ServerWebExchange exchange, GatewayFilterChain chain,long interfaceInfoId,long userId) {
 		try {
 			ServerHttpResponse originalResponse = exchange.getResponse();
 			// 缓存数据的工厂
@@ -130,11 +154,11 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 							return super.writeWith(
 									fluxBody.map(dataBuffer -> {
 										// 7. 调用成功，接口调用次数 + 1 invokeCount
-//										try {
-//											innerUserInterfaceInfoService.invokeCount(interfaceInfoId, userId);
-//										} catch (Exception e) {
-//											log.error("invokeCount error", e);
-//										}
+										try {
+											userInterfaceInfoService.invokeCount(interfaceInfoId, userId);
+										} catch (Exception e) {
+											log.error("invokeCount error", e);
+										}
 										byte[] content = new byte[dataBuffer.readableByteCount()];
 										dataBuffer.read(content);
 										DataBufferUtils.release(dataBuffer);//释放掉内存

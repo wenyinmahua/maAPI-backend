@@ -11,11 +11,12 @@ import com.mahua.maapibackend.common.ResultUtils;
 import com.mahua.maapibackend.constant.CommonConstant;
 import com.mahua.maapibackend.exception.BusinessException;
 import com.mahua.maapibackend.model.dto.interfaceinfo.*;
-import com.mahua.maapibackend.model.entity.InterfaceInfo;
-import com.mahua.maapibackend.model.entity.User;
+
 import com.mahua.maapibackend.model.enums.InterfaceInfoStatusEnum;
 import com.mahua.maapibackend.service.InterfaceInfoService;
 import com.mahua.maapibackend.service.UserService;
+import com.mahua.maapicommon.model.entity.InterfaceInfo;
+import com.mahua.maapicommon.model.entity.User;
 import com.mahua.mahuaclientsdk.client.MaHuaAPIClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;

@@ -1,7 +1,7 @@
 package com.mahua.maapibackend.mapper;
 
-import com.mahua.maapibackend.model.entity.UserInterfaceInfo;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.mahua.maapicommon.model.entity.UserInterfaceInfo;
 
 /**
 * @author mahua

@@ -4,7 +4,7 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.mahua.maapibackend.mapper.InterfaceInfoMapper">
 
-    <resultMap id="BaseResultMap" type="com.mahua.maapibackend.model.entity.InterfaceInfo">
+    <resultMap id="BaseResultMap" type="com.mahua.maapicommon.model.entity.InterfaceInfo">
             <id property="id" column="id" jdbcType="BIGINT"/>
             <result property="userId" column="userId" jdbcType="BIGINT"/>
             <result property="name" column="name" jdbcType="VARCHAR"/>
