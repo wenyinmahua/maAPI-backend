@@ -1,10 +1,8 @@
 package com.mahua.maapigateway;
 
 
-import cn.hutool.json.JSONObject;
 import com.mahua.maapicommon.model.entity.InterfaceInfo;
 import com.mahua.maapicommon.model.entity.User;
-import com.mahua.maapicommon.model.entity.UserInterfaceInfo;
 import com.mahua.maapicommon.service.InnerInterfaceService;
 import com.mahua.maapicommon.service.InnerUserService;
 import com.mahua.maapicommon.service.UserInterfaceInfoService;
@@ -18,10 +16,8 @@ import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.core.io.buffer.DataBufferUtils;
-import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.http.server.reactive.ServerHttpResponseDecorator;
@@ -99,7 +95,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 			return handleNoAuth(response);
 		}
 
-		// 实际情况使从数据库中查出 secretKey
+		// 从数据库中查出 secretKey，经过签名算法，通过用户的身份和密钥生成签名。
 		String serverSign = SignUtil.getSign(body,invokeUser.getSecretKey());
 		if(!serverSign.equals(sign)){
 			return handleNoAuth(response);
@@ -117,15 +113,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 		return handleResponse(exchange,chain,interfaceInfo.getId(),invokeUser.getId());
 }
 
-	public Mono<Void> handleNoAuth(ServerHttpResponse response){
-		response.setStatusCode(HttpStatus.FORBIDDEN);
-		return response.setComplete();
-	}
-
-	public Mono<Void> handleInvokeError(ServerHttpResponse response){
-		response.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
-		return response.setComplete();
-	}
 
 	/**
 	 *
@@ -187,6 +174,16 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 			log.error("网关处理响应异常" + e);
 			return chain.filter(exchange);
 		}
+	}
+
+	public Mono<Void> handleNoAuth(ServerHttpResponse response){
+		response.setStatusCode(HttpStatus.FORBIDDEN);
+		return response.setComplete();
+	}
+
+	public Mono<Void> handleInvokeError(ServerHttpResponse response){
+		response.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+		return response.setComplete();
 	}
 
 	@Override

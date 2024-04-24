@@ -15,8 +15,8 @@ public class MaHuaAPIClient {
 
 	private final String GATEWAY_URL = "localhost:8090";
 
-	String accessKey;
-	String secretKet;
+	private String accessKey;
+	private String secretKet;
 
 	public MaHuaAPIClient(String accessKey, String secretKet) {
 		this.accessKey = accessKey;

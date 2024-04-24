@@ -20,7 +20,7 @@ public class InterfaceController {
 
 
 	@PostMapping("/post")
-	public String getNameByPostURL(@RequestParam String name){
+	public String getNameByPostURL(@RequestParam String name) {
 		return "POST your name is " + name;
 	}
 
