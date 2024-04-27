@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.annotation.Resource;
+import java.io.UnsupportedEncodingException;
 
 @SpringBootTest
 public class MahuaAPIApplicationTests {
@@ -14,7 +15,7 @@ public class MahuaAPIApplicationTests {
 	private MaHuaAPIClient maHuaAPIClient;
 
 	@Test
-	void contextLoads(){
+	void contextLoads() throws UnsupportedEncodingException {
 		String mahua = maHuaAPIClient.getNameByGet("mahua");
 		User user = new User();
 		user.setName("mahua");

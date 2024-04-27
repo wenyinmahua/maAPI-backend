@@ -2,7 +2,6 @@ package com.mahua.mahuaapiinterface.controller;
 
 
 import com.mahua.mahuaclientsdk.model.User;
-import com.mahua.mahuaclientsdk.utils.SignUtil;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 @RequestMapping("/name")
 public class InterfaceController {
 
-	private final Long FIVE_MINUTE=60*5l;
 
 	@GetMapping("/get")
 	public String getNameByGet(String name,HttpServletRequest request){
@@ -26,29 +24,8 @@ public class InterfaceController {
 
 
 	@PostMapping("/user")
-	public String getNameByPostJson(@RequestBody User user, HttpServletRequest request){
-		String accessKey = request.getHeader("accessKey");
-		String nonce = request.getHeader("nonce");
-		String timestamp = request.getHeader("timestamp");
-		String sign = request.getHeader("sign");
-		String body = request.getHeader("body");
-		// todo 实际情况是从数据库中查询是否已分配给用户
-		if (!accessKey.equals("mahua")){
-			throw new RuntimeException("无权限");
-		}
-		if(Long.valueOf(nonce) > 10000){
-			throw new RuntimeException("无权限");
-		}
-		// 时间和当前时间不能超过5分钟
-		long currentTimestamp = System.currentTimeMillis() /1000;
-		if(currentTimestamp - Long.valueOf(timestamp) >= FIVE_MINUTE){
-			throw new RuntimeException("无权限");
-		}
-		// todo 实际情况使从数据库中查出 secretKey
-		String serverSign = SignUtil.getSign(body,"123456");
-		if(!serverSign.equals(sign)){
-			throw new RuntimeException("无权限");
-		}
+	public String getNameByPostJson(@RequestBody User user){
+		//由网关转发过来。只需要校验是不是从网关转发过来的。
 		return "POST JSON you name is "+ user.getName();
 	}
 }
