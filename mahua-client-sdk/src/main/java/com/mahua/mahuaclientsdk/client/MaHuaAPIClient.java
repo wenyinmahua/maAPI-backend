@@ -5,15 +5,18 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import com.mahua.mahuaclientsdk.model.User;
+import lombok.extern.slf4j.Slf4j;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.mahua.mahuaclientsdk.utils.SignUtil.getSign;
-
+import static com.mahua.mahuaclientsdk.utils.EncryptUtil.getSign;
+@Slf4j
 public class MaHuaAPIClient {
 
-	private final String GATEWAY_URL = "localhost:8090";
+	private final String GATEWAY_URL = "http://localhost:8090";
 
 	private String accessKey;
 	private String secretKet;
@@ -42,8 +45,9 @@ public class MaHuaAPIClient {
 
 	public String getNameByPostJson(User user){
 		String body = JSONUtil.toJsonStr(user);
-
-		String result = HttpRequest.post(GATEWAY_URL + "/api/name/user")
+		String url = GATEWAY_URL+"/api/name/user";
+		log.info(url);
+		String result = HttpRequest.post(url)
 				.body(body)
 				.addHeaders(getHeaderMap(body))
 				.execute().body();
@@ -56,12 +60,18 @@ public class MaHuaAPIClient {
 		Map<String,String> headers = new HashMap<>();
 
 		headers.put("accessKey",this.accessKey);
-		// 一定不能发送
+		// 注意私钥一定不能发送，而是不同服务在后端中取出
 		// headers.put("secretKey",this.secretKet);
 		headers.put("nonce", RandomUtil.randomNumbers(4));
-		headers.put("body", body);
+		headers.put("body",body);
+//		try {
+//			headers.put("body", URLEncoder.encode(body,"utf-8"));
+//		} catch (UnsupportedEncodingException e) {
+//			log.error("body准换失败");
+//		}
 		headers.put("timestamp",String.valueOf(System.currentTimeMillis() / 1000));
-		headers.put("sign",getSign(body,secretKet));
+		// 使用私钥进行签名
+		headers.put("sign", getSign(body,secretKet));
 		return headers;
 	}
 
