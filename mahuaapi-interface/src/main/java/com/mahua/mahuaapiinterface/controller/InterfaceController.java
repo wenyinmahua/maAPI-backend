@@ -27,28 +27,7 @@ public class InterfaceController {
 
 	@PostMapping("/user")
 	public String getNameByPostJson(@RequestBody User user, HttpServletRequest request){
-		String accessKey = request.getHeader("accessKey");
-		String nonce = request.getHeader("nonce");
-		String timestamp = request.getHeader("timestamp");
-		String sign = request.getHeader("sign");
-		String body = request.getHeader("body");
-		// todo 实际情况是从数据库中查询是否已分配给用户
-		if (!accessKey.equals("mahua")){
-			throw new RuntimeException("无权限");
-		}
-		if(Long.valueOf(nonce) > 10000){
-			throw new RuntimeException("无权限");
-		}
-		// 时间和当前时间不能超过5分钟
-		long currentTimestamp = System.currentTimeMillis() /1000;
-		if(currentTimestamp - Long.valueOf(timestamp) >= FIVE_MINUTE){
-			throw new RuntimeException("无权限");
-		}
-		// todo 实际情况使从数据库中查出 secretKey
-		String serverSign = SignUtil.getSign(body,"123456");
-		if(!serverSign.equals(sign)){
-			throw new RuntimeException("无权限");
-		}
+
 		return "POST JSON you name is "+ user.getName();
 	}
 }

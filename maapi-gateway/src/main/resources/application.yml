@@ -9,6 +9,8 @@ spring:
 #    url: jdbc:mysql://localhost:3307/mahuaapi
 #    username: root
 #    password: "030109"
+  profiles:
+    active: dev
   cloud:
     gateway:
       routes:
