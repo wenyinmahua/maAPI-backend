@@ -2,7 +2,6 @@ package com.mahua.maapibackend.service.impl;
 
 
 
-import com.mahua.maapibackend.service.impl.inner.InnerUserInterfaceInfoServiceImpl;
 import com.mahua.maapicommon.service.InnerInterfaceService;
 import com.mahua.maapicommon.service.UserInterfaceInfoService;
 import org.apache.dubbo.config.annotation.DubboReference;

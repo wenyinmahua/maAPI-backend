@@ -34,4 +34,4 @@ dubbo:
     port: -1
   registry:
     id: nacos-registry
-    address: nacos://192.168.25.147:8848
+    address: nacos://192.168.183.128:8848
