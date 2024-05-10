@@ -53,170 +53,6 @@ API 开放接口：提供 API 接口供开发者调用的平台，基于 Spring 
 
 
 
-
-# 签名算法
-
-### API签名
-
-	API 签名算法是对请求数据进行签名。具体来说，签名过程是为了确保API请求的完整性和来源的可信性，防止数据在传输过程中被篡改，同时验证请求发起者拥有合法的权限。以下是签名算法对API请求数据进行签名的详细说明：
-
-1. 请求参数：
-   签名算法通常针对 API 请求中包含的所有关键参数进行签名。这些参数可能包括但不限于：访问令牌（Access Token）、请求方法（GET、POST等）、请求路径（URL）、查询参数、请求体（JSON、XML等格式的数据）、时间戳、nonce（一次性随机值，用于防止重放攻击）等。
-   参数通常按照一定的规则（如字母序、参数重要性）进行排序，确保双方（客户端和服务端）对签名数据的处理方式一致。
-
-2. 签名密钥：
-   签名过程需要用到一个或多个密钥。这些密钥可能是对称密钥（如HMAC-SHA256签名中使用的密钥）或非对称密钥对（如RSA、ECDSA签名中使用的私钥和公钥）。密钥通常由服务提供商分配给API使用者，或者由使用者根据服务提供商的规范自行生成，并在安全通道上传递给服务提供商。
-
-3. 签名生成：
-   客户端（API使用者）将排序后的请求参数拼接成一个字符串或序列化为二进制数据，然后使用指定的签名算法（如HMAC、RSA、ECDSA等）和对应的密钥对这个数据进行签名运算，生成一个固定长度的签名值（通常为一串十六进制或Base64编码的字符串）。
-
-4. 签名传递：
-   客户端将生成的签名值附加到API请求中，通常作为请求头的一个字段（如Authorization、X-Signature、Signature等）发送给服务端。同时，原始请求参数也随请求一同发送。
-
-5. 签名验证：
-   服务端收到请求后，首先提取请求头中的签名值和请求中的所有相关参数。接着，按照与客户端相同的规则重新计算这些参数的签名。如果重新计算得到的签名与接收到的签名值匹配，说明请求数据在传输过程中未被篡改，且请求来自持有正确密钥的合法客户端。
-
-   综上所述，API签名算法是对API请求数据（包括请求参数）进行签名，目的是确保请求的完整性和来源的可信性。签名过程涉及到请求参数的规范化、密钥的使用、签名值的生成与传递以及服务端的签名验证。通过签名，服务端可以有效地鉴别请求的真伪，保障API接口的安全性。
-
-
-
-
-
-### Java 使用 Ed25519 算法进行签名和验签
-
-1.引入依赖
-
-使用EdDSA（Edwards-curve Digital Signature Algorithm）进行签名操作，需要借助于BouncyCastle库，因为它提供了对 EdDSA 算法的支持。添加了BouncyCastle作为JCE（Java Cryptography Extension）的提供者。
-
-```xml
-<dependency>
-    <groupId>org.bouncycastle</groupId>
-    <artifactId>bcprov-jdk15on</artifactId>
-    <version>最新版本号</version>
-</dependency>
-```
-
-2.编写EdDSA签名、Ed25519
-
-生成 公钥 和 私钥 并保存在数据库中
-
-1. 添加BouncyCastle作为JCE提供者
-2. 生成密钥对
-3. 获取私钥和公钥
-4. 将 公钥 和 私钥 转换为 byte 数组，经过 Base64 编码之后转换为字符串，方便存储在数据库中
-
-签名和验签：
-
-1. 从数据库中取出公钥和私钥
-2. 使用私钥对**请求数据**进行签名，之后转发给其他请求
-3. 在另外的服务器中使用公钥验签。
-
-```java
-package com.mahua.studytest.encryption;
-
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
-import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
-import org.bouncycastle.crypto.params.Ed25519PrivateKeyParameters;
-import org.bouncycastle.crypto.params.Ed25519PublicKeyParameters;
-import org.bouncycastle.crypto.signers.Ed25519Signer;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.encoders.Hex;
-
-import java.security.Security;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-
-public class Encrypt {
-	static Map <String, String> AKAndSK = new HashMap<>();
-	public static void main(String[] args) throws Exception {
-		// 添加BouncyCastle作为JCE提供者
-		Security.addProvider(new BouncyCastleProvider());
-
-		// 生成Ed25519密钥对
-		AsymmetricCipherKeyPair keyPair = generateEd25519KeyPair();
-
-		// 获取私钥和公钥
-		Ed25519PrivateKeyParameters privateKeyParams = (Ed25519PrivateKeyParameters) keyPair.getPrivate();
-		Ed25519PublicKeyParameters publicKeyParams = (Ed25519PublicKeyParameters) keyPair.getPublic();
-		// 将公钥和私钥转换为 byte 数组和 字符串，以便保存在数据库中
-		setAccessKeyAndSecretKeyString(privateKeyParams, publicKeyParams);
-        
-		// 从数据库中获取签名
-        getAccessKeyAndSecretKey();
-		// 将要签名的数据(请求参数)转换为 byte 数组
-		byte[] message = "Hello, world!".getBytes();
-
-		// 使用私钥对数据进行签名
-		byte[] signature = sign(message, privateKeyParams);
-
-		// 打印签名，可以看到每一次签名不一样
-		System.out.println("Signature (hex): " + Hex.toHexString(signature));
-
-		// 验证签名，使用生成中的公钥对数据进行校验
-        // 生成的一对密钥，非对称加密。
-		boolean isValid = verify(message, signature, publicKeyParams);
-		System.out.println("Signature is valid: " + isValid);
-	}
-
-	private static void setAccessKeyAndSecretKeyString(Ed25519PrivateKeyParameters privateKeyParams, Ed25519PublicKeyParameters publicKeyParams) {
-		byte[] privateKeyBytes = privateKeyParams.getEncoded();
-		byte[] publicKeyBytes = publicKeyParams.getEncoded();
-		// Base64 编码将 byte 数组转换成字符串，方便存储在数据库中
-		String privateKeyBase64 = Base64.getEncoder().encodeToString(privateKeyBytes);
-		String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
-		System.out.println(privateKeyBase64);
-		System.out.println(publicKeyBase64);
-		save(publicKeyBase64,privateKeyBase64);
-	}
-
-	private static void save(String publicKeyBase64, String privateKeyBase64) {
-        // todo 将base64 编码后的公钥和私钥直接存放在数据库中
-		AKAndSK.put(privateKeyBase64,publicKeyBase64);
-	}
-
-	private static void getAccessKeyAndSecretKey() {
-		// todo 查询数据库并获取Base64编码的私钥和公钥字符串
-
-		String retrievedPrivateKeyBase64 = "lnYFvFIaoU/d1duKJYDKqasYtdftz+FggcVLa3d5I/Y="; // 从查询结果中获取
-		String retrievedPublicKeyBase64 = "Uxpvc3suXC/q6Pp6ncQ7k7vIo48/JP7P+Ve6ilb2ims="; // 从查询结果中获取
-
-		// 将 公钥和私钥的 字符串 经过 Base64 解码之后存储为 byte 数组，进而反序列化为公钥和私钥的对象
-		byte[] retrievedPrivateKeyBytes = Base64.getDecoder().decode(retrievedPrivateKeyBase64);
-		byte[] retrievedPublicKeyBytes = Base64.getDecoder().decode(retrievedPublicKeyBase64);
-
-		// 反序列化为Ed25519PrivateKeyParameters和Ed25519PublicKeyParameters对象
-		Ed25519PrivateKeyParameters retrievedPrivateKeyParams = new Ed25519PrivateKeyParameters(retrievedPrivateKeyBytes, 0);
-		Ed25519PublicKeyParameters retrievedPublicKeyParams = new Ed25519PublicKeyParameters(retrievedPublicKeyBytes, 0);
-
-	}
-
-	private static AsymmetricCipherKeyPair generateEd25519KeyPair() {
-		Ed25519KeyPairGenerator generator = new Ed25519KeyPairGenerator();
-		generator.init(new Ed25519KeyGenerationParameters(null));
-		return generator.generateKeyPair();
-	}
-
-	private static byte[] sign(byte[] message, Ed25519PrivateKeyParameters privateKeyParams) {
-		Ed25519Signer signer = new Ed25519Signer();
-		signer.init(true, privateKeyParams);
-		signer.update(message, 0, message.length);
-		return signer.generateSignature();
-	}
-
-	private static boolean verify(byte[] message, byte[] signature, Ed25519PublicKeyParameters publicKeyParams) {
-		Ed25519Signer verifier = new Ed25519Signer();
-		verifier.init(false, publicKeyParams);
-		verifier.update(message, 0, message.length);
-		return verifier.verifySignature(signature);
-	}
-
-}
-```
-
-
-
 # Dubbo
 
 ## Dubbo 的使用
@@ -682,6 +518,164 @@ mahuaapi:
 ```
 
 这里的 AK 和 SK 都是系统生成的，否则在验签的时候会出现错误，因为签名是使用 Ed25519 非对称签名算法，公钥和私钥都是需要匹配的。
+
+# 签名算法
+
+### API签名
+
+API 签名算法是对请求数据进行签名。具体来说，签名过程是为了确保API请求的完整性和来源的可信性，防止数据在传输过程中被篡改，同时验证请求发起者拥有合法的权限。以下是签名算法对API请求数据进行签名的详细说明：
+
+1. 请求参数：
+   签名算法通常针对 API 请求中包含的所有关键参数进行签名。这些参数可能包括但不限于：访问令牌（Access Token）、请求方法（GET、POST等）、请求路径（URL）、查询参数、请求体（JSON、XML等格式的数据）、时间戳、nonce（一次性随机值，用于防止重放攻击）等。
+   参数通常按照一定的规则（如字母序、参数重要性）进行排序，确保双方（客户端和服务端）对签名数据的处理方式一致。
+
+2. 签名密钥：
+   签名过程需要用到一个或多个密钥。这些密钥可能是对称密钥（如HMAC-SHA256签名中使用的密钥）或非对称密钥对（如RSA、ECDSA签名中使用的私钥和公钥）。密钥通常由服务提供商分配给API使用者，或者由使用者根据服务提供商的规范自行生成，并在安全通道上传递给服务提供商。
+
+3. 签名生成：
+   客户端（API使用者）将排序后的请求参数拼接成一个字符串或序列化为二进制数据，然后使用指定的签名算法（如HMAC、RSA、ECDSA等）和对应的密钥对这个数据进行签名运算，生成一个固定长度的签名值（通常为一串十六进制或Base64编码的字符串）。
+
+4. 签名传递：
+   客户端将生成的签名值附加到API请求中，通常作为请求头的一个字段（如Authorization、X-Signature、Signature等）发送给服务端。同时，原始请求参数也随请求一同发送。
+
+5. 签名验证：
+   服务端收到请求后，首先提取请求头中的签名值和请求中的所有相关参数。接着，按照与客户端相同的规则重新计算这些参数的签名。如果重新计算得到的签名与接收到的签名值匹配，说明请求数据在传输过程中未被篡改，且请求来自持有正确密钥的合法客户端。
+
+   综上所述，API签名算法是对API请求数据（包括请求参数）进行签名，目的是确保请求的完整性和来源的可信性。签名过程涉及到请求参数的规范化、密钥的使用、签名值的生成与传递以及服务端的签名验证。通过签名，服务端可以有效地鉴别请求的真伪，保障API接口的安全性。
+
+
+
+
+
+### Java 使用 Ed25519 算法进行签名和验签
+
+1.引入依赖
+
+使用EdDSA（Edwards-curve Digital Signature Algorithm）进行签名操作，需要借助于BouncyCastle库，因为它提供了对 EdDSA 算法的支持。添加了BouncyCastle作为JCE（Java Cryptography Extension）的提供者。
+
+```xml
+<dependency>
+    <groupId>org.bouncycastle</groupId>
+    <artifactId>bcprov-jdk15on</artifactId>
+    <version>最新版本号</version>
+</dependency>
+```
+
+2.编写EdDSA签名、Ed25519
+
+生成 公钥 和 私钥 并保存在数据库中
+
+1. 添加BouncyCastle作为JCE提供者
+2. 生成密钥对
+3. 获取私钥和公钥
+4. 将 公钥 和 私钥 转换为 byte 数组，经过 Base64 编码之后转换为字符串，方便存储在数据库中
+
+签名和验签：
+
+1. 从数据库中取出公钥和私钥
+2. 使用私钥对**请求数据**进行签名，之后转发给其他请求
+3. 在另外的服务器中使用公钥验签。
+
+
+
+### 1. 定义密钥对实体类
+
+```java
+@Data
+@ToString
+public class KeyPair {
+    /**
+     * 公钥
+     */
+    private String publicKey;
+    /**
+     * 私钥
+     */
+    private String privateKey;
+}
+```
+
+
+
+### 2. 编写工具类
+
+```java
+/**
+ * Ed25519 签名工具类
+ */
+public class EncryptUtil {
+
+	/**
+	 * 生成密钥对，包含公钥和私钥
+	 * @return 返回密钥对
+	 */
+	public static KeyPair getKeys(){
+		KeyPair keyPair = new KeyPair();
+		Security.addProvider(new BouncyCastleProvider());
+		AsymmetricCipherKeyPair generateKeyPair = generateEd25519KeyPair();
+		Ed25519PrivateKeyParameters privateKeyParams = (Ed25519PrivateKeyParameters) generateKeyPair.getPrivate();
+		Ed25519PublicKeyParameters publicKeyParams = (Ed25519PublicKeyParameters) generateKeyPair.getPublic();
+		byte[] privateKeyBytes = privateKeyParams.getEncoded();
+		byte[] publicKeyBytes = publicKeyParams.getEncoded();
+		// Base64 编码将 byte 数组转换成字符串，方便存储在数据库中
+		keyPair.setPrivateKey(Base64.getEncoder().encodeToString(privateKeyBytes));
+		keyPair.setPublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
+		return keyPair;
+	}
+
+	/**
+	 * 对请求数据使用私钥钥进行签名
+	 * @param param 请求数据
+	 * @param privateKey 密钥
+	 * @return
+	 */
+	public static String getSign(String param, String privateKey) {
+		byte[] retrievedPrivateKeyBytes = Base64.getDecoder().decode(privateKey);
+		Ed25519PrivateKeyParameters retrievedPrivateKeyParams = new Ed25519PrivateKeyParameters(retrievedPrivateKeyBytes, 0);
+		// 要签名的数据(请求参数)
+		byte[] message = param.getBytes();
+		Ed25519Signer signer = new Ed25519Signer();
+		signer.init(true, retrievedPrivateKeyParams);
+		signer.update(message, 0, message.length);
+		byte[] bytes = signer.generateSignature();
+		String sign = new String(bytes);
+		return sign;
+	}
+
+	/**
+	 * 对请求参数进行验签
+	 * @param publicKey 公钥
+	 * @param sign 需要验证的签名
+	 * @param param 需要验证的请求参数
+	 * @return
+	 */
+	public static boolean verifySign(String publicKey, String sign, String param){
+		byte[] retrievedPublicKeyBytes = Base64.getDecoder().decode(publicKey);
+		// 反序列化为Ed25519PublicKeyParameters对象
+		Ed25519PublicKeyParameters retrievedPublicKeyParams = new Ed25519PublicKeyParameters(retrievedPublicKeyBytes, 0);
+
+		// 使用私钥对数据进行签名
+		byte[] signature = Base64.getDecoder().decode(sign);
+		Ed25519Signer verifier = new Ed25519Signer();
+		verifier.init(false, retrievedPublicKeyParams);
+		// 要签名的数据(请求参数)
+		byte[] message = param.getBytes();
+		verifier.update(message, 0, message.length);
+		return verifier.verifySignature(signature);
+	}
+
+
+	private static AsymmetricCipherKeyPair generateEd25519KeyPair() {
+		Ed25519KeyPairGenerator generator = new Ed25519KeyPairGenerator();
+		generator.init(new Ed25519KeyGenerationParameters(null));
+		return generator.generateKeyPair();
+	}
+}
+```
+
+
+
+
 
 # 麻花 API 
 
@@ -1302,4 +1296,3 @@ HTTP请求怎么调用？
 ```sql
 select interfacterInfo , sum(totalNum) as totalNum from userInterInfo group by interfaceInfoId order by total desc limit 3 
 ```
-
