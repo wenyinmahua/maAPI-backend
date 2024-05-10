@@ -1,14 +1,18 @@
 # 项目介绍
 
 
-API 开放接口：提供开放的 api 接口供他人调用
+API 开放接口：提供 API 接口供开发者调用的平台，基于 Spring Boot 后端的微服务项目。
+
+管理员可以接入并发布接口、统计分析各接口调用情况；用户可以注册登录并开通接口调用权限、浏览接口、在线调试，还能使用 客户端 SDK 轻松在代码中调用接口。
 
 项目模块：
 
 1. 公共模块：提供项目中公共的部分，减少代码量，提高开发效率
 
    1. 定义了公共实体类
-   2. 定义了公共的方法（都是接口，在后端模块中实现，调用时通过Dubbo来远程调用）
+   2. 定义了公共的方法（查询接口信息、查询公钥是否分配给用户、接口调用次数 + 1）
+   3. 公共模块作为子模块引入需要相关功能的模块中，
+      - 公共的方法在公共模块中存在的形式是接口，在相关模块中可以通过接口 + Dubbo 实现远程调用，接口的具体实现在后端模块中。
 
 2. 网关模块：
 
@@ -23,10 +27,6 @@ API 开放接口：提供开放的 api 接口供他人调用
    5. 防止回放：时间戳+随机数
 
    6. 处理公共业务：如果调用成功，那么调用次数 + 1，不用在各个调用请求的方法中判断并改变请求调用的次数。
-
-      > 注意 GateWay 中使用了 Dubbo ，需要在启动类上添加 @EnableDubbo注解，
-      >
-      > 在注入的 Dubbo 服务对象上增加 @DubboReference 注解，作为服务的调用者
 
 3. 客户端 SDK 模块：
 
@@ -47,6 +47,8 @@ API 开放接口：提供开放的 api 接口供他人调用
 
    1. 服务层：服务层有些服务类实现了公共模块的代码
 
+   
+
 
 
 
@@ -54,21 +56,25 @@ API 开放接口：提供开放的 api 接口供他人调用
 
 ### API签名
 
-​	API 签名算法是对**请求数据**进行签名。具体来说，签名过程是为了**确保API请求的完整性和来源的可信性**，**防止数据在传输过程中被篡改**，同时**验证请求发起者拥有合法的权限**。以下是签名算法对API请求数据进行签名的详细说明：
+	API 签名算法是对**请求数据**进行签名。具体来说，签名过程是为了**确保API请求的完整性和来源的可信性**，**防止数据在传输过程中被篡改**，同时**验证请求发起者拥有合法的权限**。以下是签名算法对API请求数据进行签名的详细说明：
 
 1. 请求参数：
    签名算法通常针对 API 请求中包含的所有关键参数进行签名。这些参数可能包括但不限于：访问令牌（Access Token）、请求方法（GET、POST等）、请求路径（URL）、查询参数、请求体（JSON、XML等格式的数据）、时间戳、nonce（一次性随机值，用于防止重放攻击）等。
    参数通常按照一定的规则（如字母序、参数重要性）进行排序，确保双方（客户端和服务端）对签名数据的处理方式一致。
+
 2. 签名密钥：
    签名过程需要用到一个或多个密钥。这些密钥可能是对称密钥（如HMAC-SHA256签名中使用的密钥）或非对称密钥对（如RSA、ECDSA签名中使用的私钥和公钥）。密钥通常由服务提供商分配给API使用者，或者由使用者根据服务提供商的规范自行生成，并在安全通道上传递给服务提供商。
+
 3. 签名生成：
    客户端（API使用者）将排序后的请求参数拼接成一个字符串或序列化为二进制数据，然后使用指定的签名算法（如HMAC、RSA、ECDSA等）和对应的密钥对这个数据进行签名运算，生成一个固定长度的签名值（通常为一串十六进制或Base64编码的字符串）。
+
 4. 签名传递：
    客户端将生成的签名值附加到API请求中，通常作为请求头的一个字段（如Authorization、X-Signature、Signature等）发送给服务端。同时，原始请求参数也随请求一同发送。
+
 5. 签名验证：
    服务端收到请求后，首先提取请求头中的签名值和请求中的所有相关参数。接着，按照与客户端相同的规则重新计算这些参数的签名。如果重新计算得到的签名与接收到的签名值匹配，说明请求数据在传输过程中未被篡改，且请求来自持有正确密钥的合法客户端。
 
-​	综上所述，API签名算法是对API请求数据（包括请求参数）进行签名，目的是确保请求的完整性和来源的可信性。签名过程涉及到请求参数的规范化、密钥的使用、签名值的生成与传递以及服务端的签名验证。通过签名，服务端可以有效地鉴别请求的真伪，保障API接口的安全性。
+   综上所述，API签名算法是对API请求数据（包括请求参数）进行签名，目的是确保请求的完整性和来源的可信性。签名过程涉及到请求参数的规范化、密钥的使用、签名值的生成与传递以及服务端的签名验证。通过签名，服务端可以有效地鉴别请求的真伪，保障API接口的安全性。
 
 
 
@@ -209,6 +215,283 @@ public class Encrypt {
 
 
 
+# Dubbo
+
+## Dubbo 的使用
+
+Dubbo 提供了一种透明化的远程方法调用（RPC）方式，使得开发者能够像调用本地方法一样调用远程服务，极大地简化了分布式系统中服务间的调用复杂度。
+
+Dubbo 帮助解决微服务组件之间的通信问题，提供了基于 HTTP、HTTP/2、TCP 等的多种高性能通信协议实现，并支持序列化协议扩展，在实现上解决网络连接管理、数据传输等基础问题。
+
+由于 Dubbo 的使用需要注册中心，项目中选择了 Nacos 作为注册中心；
+
+
+
+### 1. 项目的必备模块
+
+项目模块最少需要三个模块
+
+- 服务接口模块
+- 服务提供者模块
+- 服务消费者模块
+
+> 项目的服务提供者和服务消费者是两个独立的模块，将服务接口模块定义成公共模块，在服务的提供者和服务消费者引入服务接口模块。
+
+> 服务提供者和服务消费者的启动类上要添加 `@EnableDubbo` 注解
+
+```java
+@SpringBootApplication
+@EnableDubbo
+public class ConsumerApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(ConsumerApplication.class, args);
+    }
+}
+```
+
+
+
+### 2. Dobbo + Nacos Maven 依赖
+
+```xml
+<dependency>
+    <groupId>org.apache.dubbo</groupId>
+    <artifactId>dubbo</artifactId>
+    <version>3.0.9</version>
+</dependency>
+<dependency>
+    <groupId>com.alibaba.nacos</groupId>
+    <artifactId>nacos-client</artifactId>
+    <version>2.1.0</version>
+</dependency>
+```
+
+> Nacos 应用下载的版本号为 `2.1.1` ，高版本可能会出错
+>
+> - Nacos的运行建议至少在2C4G 60G的机器配置下运行，低于这个配置可能会导致 Nacos 启动报错。
+
+
+
+### 3. 注册中心 Nacos 的使用
+
+需要切换到 Nacos 的 bin 目录下
+
+```shell
+sh startup.sh -m standalone   # 启动命令(standalone代表着单机模式运行，非集群模式)
+sh shutdown.sh # 关闭服务器
+```
+
+
+
+### 4. 配置 Dubbo 和 Nacos 注册中心
+
+通过 Spring Boot 的方式配置 Dubbo 的一些基础信息。
+
+在服务提供者和服务消费者两个，定义了 Dubbo 的应用名、Dubbo 协议信息、Dubbo 使用的注册中心地址，定义如下：
+
+```yaml
+dubbo:
+  application:
+    name: dubbo-springboot-provider  # Dubbo 的应用名
+  protocol: 						 # Dubbo 的协议信息
+    name: dubbo
+    port: -1
+  registry:							 # Dubbo 使用的注册中心地址
+    id: nacos-registry
+    address: nacos://Nacos 所在服务器的 ip 地址:8848
+```
+
+###  5. 定义服务接口
+
+服务接口需要定义在服务接口模块中
+
+服务接口是 Dubbo 中沟通消费端和服务端的桥梁。
+
+后续服务端发布的服务，消费端订阅的服务都是围绕着 `服务接口` 展开的。
+
+> - 服务接口模块作为子模块被引入到 服务提供者模块和服务消费者模块；
+> - 服务接口模块中的服务接口在服务提供者中具体实现；
+> - 服务消费者直接调用服务接口模块中定义的服务接口。
+
+
+
+### 6. 定义服务端实现
+
+> 这里定义的服务端一般指的是服务提供者。
+
+定义了服务接口之后，可以在服务端这一侧定义对应的实现，这部分的实现相对于消费端来说是远端的实现，本地没有相关的信息。
+
+- 需要在服务提供者实现的接口实现类上加上 `@DubboService` 注解
+
+>@DubboService 是Dubbo框架中的一个注解，主要用于标记在Spring框架中的服务提供者（Provider）接口或者实现类。当一个类或方法被此注解标记时，Dubbo会将其识别为需要暴露给其他服务消费者（Consumer）调用的服务。
+
+
+
+### 7. 配置消费端请求任务
+
+在需要服务接口模块提供的服务接口时，需要注入相关的服务接口的对象，加上 `@DubboReference` ，从 Dubbo 获取了一个 RPC 订阅，订阅的服务可以像本地调用一样直接调用。
+
+>@DubboReference 是 Dubbo 框架提供的另一个重要注解，用于 Spring 框架中服务消费者的客户端代理。当在消费者应用中使用此注解时，Dubbo 会自动创建一个代理对象，该对象背后封装了对远程服务的调用逻辑。这意味着开发者可以像调用本地方法一样调用远程服务。
+
+
+
+### 8. 启动应用
+
+先启动服务的提供者模块，然后启动服务的消费者模块。
+
+
+
+### 总结
+
+- 在某个模块使用 Dubbo ，引入相关依赖，配置相关配置，需要在启动类上添加 `@EnableDubbo` 注解；
+
+- 在项目的服务消费者注入的 Dubbo 服务对象上增加 `@DubboReference` 注解；
+- 在项目的服务提供者的服务接口实现类上增加 `@DubboService` 注解。
+
+
+
+### 项目中这些地方用到了 Dubbo
+
+#### 1.服务接口模块
+
+在项目中，公共模块相当于服务接口模块，提供了以下三个接口：
+
+- 查询接口信息
+- 查询公钥是否分配给用户
+- 接口调用次数 + 1
+
+接口中定义了相关的方法。
+
+```java
+public interface InnerInterfaceService {
+
+    /**
+     * 从数据库中查询接口是否存在（请求路径、请求方法）
+     * @param path
+     * @param method
+     * @return 接口信息，为空表示接口不存在
+     */
+    InterfaceInfo getInterfaceInfo(String path, String method);
+}
+```
+
+
+
+#### 2.服务提供者模块
+
+由于服务接口需要操作数据库，而后端模块已经实现了相关的操作，一因此这里就将后端作为消息的提供者。
+
+```java
+@DubboService  	// 这个是关键
+@Service
+public class InnerInterfaceServiceInfo implements InnerInterfaceService {
+    @Resource
+    InterfaceInfoMapper interfaceInfoMapper;
+    @Override
+    public InterfaceInfo getInterfaceInfo(String path, String method) {
+       if (StringUtils.isAllEmpty(path,method)){
+          throw new BusinessException(ErrorCode.PARAMS_ERROR,"请求参数不能为空");
+       }
+       QueryWrapper<InterfaceInfo> queryWrapper = new QueryWrapper<>();
+       queryWrapper.eq("url",path);
+       queryWrapper.eq("method",method);
+       InterfaceInfo interfaceInfo = interfaceInfoMapper.selectOne(queryWrapper);
+       if (interfaceInfo == null){
+          throw new BusinessException(ErrorCode.PARAMS_ERROR,"请求参数错误");
+       }
+       return interfaceInfo;
+    }
+}
+```
+
+
+
+#### 3. 服务消费者
+
+由于网关需要使用这些接口进行鉴权和执行公共业务等操作，这里的网关模块相当于服务的消费者。
+
+以下是网关的过滤器中的相关内容。
+
+```java
+	@DubboReference
+	private InnerUserService innerUserService;
+
+	@DubboReference
+	private InnerInterfaceService innerInterfaceService;
+
+	@DubboReference
+	private UserInterfaceInfoService userInterfaceInfoService;
+
+	private static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1");
+	@Override
+	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+		// 1.用户发送请求到 API 网关
+		// 2.请求日志
+		ServerHttpRequest request = exchange.getRequest();
+		String path = request.getPath().toString();
+		String method = request.getMethod().toString();
+		log.info("请求方式:"+method);
+		log.info("请求参数:"+ request.getQueryParams());
+		log.info("请求地址:"+path);
+		log.info("请求源地址" + request.getRemoteAddress().getHostString());
+		// 3.黑白名单
+		ServerHttpResponse response = exchange.getResponse();
+		if (!IP_WHITE_LIST.contains(request.getLocalAddress().getHostString())){
+			return handleNoAuth(response);
+		}
+		// 4.用户鉴权
+		HttpHeaders headers = request.getHeaders();
+		String accessKey = headers.getFirst("accessKey");
+		String nonce = headers.getFirst("nonce");
+		String timestamp = headers.getFirst("timestamp");
+		String sign = headers.getFirst("sign");
+		String body = headers.getFirst("body");
+
+		if(Long.valueOf(nonce) > 10000){
+			return handleNoAuth(response);
+		}
+		// 时间和当前时间不能超过5分钟
+		Long FIVE_MINUTES = 60 * 5l;
+		Long currentTimestamp = System.currentTimeMillis() /1000;
+		if(currentTimestamp - Long.valueOf(timestamp) >= FIVE_MINUTES){
+			throw new RuntimeException("无权限");
+		}
+		// 5. 实际情况是从数据库中查询是否已分配给用户
+		User invokeUser = null;
+		try{
+			invokeUser = innerUserService.getInvokeUser(accessKey);
+		}catch (Exception e){
+			log.error("getInvokeUser error", e);
+		}
+		if (invokeUser == null){
+			return handleInvokeError(response);
+		}
+		if (!accessKey.equals(invokeUser.getAccessKey())){
+			return handleNoAuth(response);
+		}
+
+		// 从数据库中查出 secretKey，经过签名算法，通过用户的身份和密钥生成签名。
+		String serverSign = SignUtil.getSign(body,invokeUser.getSecretKey());
+		if(!serverSign.equals(sign)){
+			return handleNoAuth(response);
+		}
+		// 5.从数据库中查询，请求的模拟接口是否存在，以及请求参数是否匹配
+		InterfaceInfo interfaceInfo = null;
+
+		try{
+			interfaceInfo = innerInterfaceService.getInterfaceInfo(path, method);
+		}catch (Exception e){
+			log.error("getInvokeUser error", e);
+		}
+		// 6.请求转发，调用模拟接口 + 响应日志
+		log.info("响应："+response.getStatusCode());
+		return handleResponse(exchange,chain,interfaceInfo.getId(),invokeUser.getId());
+}
+```
+
+
+
 # 80万行古诗并发插入数据库
 
 ```java
@@ -329,6 +612,8 @@ public class PoemInsertTest {
 
 
 
+
+
 # 开发一个简单易用的SDK
 
 理想情况，开发者只需要关心调用哪些接口、传递哪些参数，就跟调用自己写的代码一样简单
@@ -357,7 +642,7 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 >    org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.mahua.mahuaclientsdk.MahuaAPIClientConfig
 >    ```
 >
-> 
+> 6. 将配置文件中的 mahuaapi.client 部分映射到一个配置类，然后通过 @Bean 注解创建一个 MaHuaAPIClient 实例，这个实例的创建依赖于配置文件中的 accessKey 和 secretKey.
 >
 > ```java
 > @Configuration
@@ -379,37 +664,38 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 
 
 
+## 如何使用?
+
+因为 SpringBoot 的自动配置原理，只需要配置相关的信息。
 
 
 
+在引入 SDK 模块相关模块的的 `resources` 资源文件夹下建立 `application.yml` 配置文件，在这个配置文件中填写如下信息：
 
-# 麻花 API 接口
+```yaml
+mahuaapi:
+  client:
+    access-key: mahua
+    secret-key: 123456
+```
+
+这里的 AK 和 SK 都是系统生成的，否则在验签的时候会出现错误，因为签名是使用 Ed25519 非对称签名算法，公钥和私钥都是需要匹配的。
+
+# 麻花 API 
 
 ## 业务流程：
 
 用户请求 backend，backend 请求 sdk，验证用户的身份，转发到网关，网关再请求实际地址
 
-公钥请求头转发，密钥并不是通过请求头直接发送的，而是通过用户的某个固定的属性，结果非对称加密（Sed25519）之后转换为签名发送的，调用接口时通过签名算法进行验签，判断用户的签名是否正确。
+公钥请求头转发，密钥并不是通过请求头直接发送的，而是通过用户的某个固定的属性，结果非对称加密（Ed25519）之后转换为签名发送的，调用接口时通过签名算法进行验签，判断用户的签名是否正确。
 
-请求数据在客户端进行签名，。
+请求数据在客户端进行签名。
 
 
 
 ## 1.初期准备
 
-背景：
 
-1. 前端开发需要用到后台的接口
-2. 使用现成的系统的功能
-
-做一个API开放平台：
-
-1. 防止攻击（安全性）
-2. 不能随便调用（限制、开通）
-3. 统计调用次数
-4. 计费
-5. 流量保护
-6. API接入
 
 ### 1. 项目介绍
 
@@ -425,34 +711,22 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 
 ### 3.技术选型
 
-前端
-
-Ant Design Pro
-
-React
-
-Ant Design Procomponents
-
-Umi
-
-Umi Request（Axois封装）
-
-
-
 后端
 
 Java Spring Boot
 
 Spring Boot start（SDK开发）
 
-？？？？（网关、限流、日志实现）
+Dubbo （RPC 远程服务调用）
+
+Spring Cloud GateWay（网关、统一鉴权、流量染色、日志实现）
 
 
 
 ### 4. 需求分析
 
 1. 管理员可以对接口信息进行增删改查
-2. 用户可以访问前台、查看接口信息
+2. 用户可以查看接口信息、访问接口
 
 
 
@@ -486,10 +760,6 @@ updateTime
 
 
 
-### 6. 基础功能
-
-### 7. 小总结
-
 
 
 
@@ -510,13 +780,12 @@ updateTime
 
 ## 第二期——接口调用
 
-1. 继续开发接口管理前端页面
-2. 开发虚拟 API 接口
-3. 开发调用这个接口的代码
-4. 保证调用的安全性（API签名认证）
-5. 客户端 SDK 开发
-6. 管理员接口 **发布** 与调度
-7. 接口文档展示、接口在线调度
+1. 开发虚拟 API 接口
+2. 开发调用这个接口的代码
+3. 保证调用的安全性（API签名认证）
+4. 客户端 SDK 开发
+5. 管理员接口 **发布** 与调度
+6. 接口文档展示、接口在线调度
 
 
 
@@ -539,7 +808,7 @@ updateTime
 
 为什么需要？
 
-1. 保证安全性，不能随便一个人调用
+- 保证安全性，不能随便一个人调用
 
 #### 怎么实现？
 
@@ -559,7 +828,7 @@ updateTime
 
 加密方式：对称加密、非对称加密，md5加密
 
-用户参数 + 密钥 =》 签名生成算法 =》 不可解密的值
+用户参数 + 密钥 => 签名生成算法 => 不可解密的值
 
 服务端使用一样的参数和算法生成签名，只要和用户传的一致，就表示一致。
 
@@ -568,8 +837,6 @@ updateTime
 > 参数5：加 nonce 随机数，只能用一次，服务器需要保存用过的随机数。
 >
 > 参数6：加timestamp时间戳，校验时间戳是否过期
-
-
 
 
 
@@ -631,12 +898,9 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 
 ### 统计用户调用次数
 
-限流、日志、计费、开通
-
 1. 开发接口发布/下线的功能（管理员）
-2. 前端去浏览接口、查看接口文档、申请签名（注册）、在线调试（用户）
-3. 统计用户调用接口的次数
-4. 优化系统---API网关
+2. 统计用户调用接口的次数
+3. 优化系统---API网关
 
 ### 开发接口发布/下线的功能（管理员）
 
@@ -654,7 +918,7 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 
 1. 校验接口是否存在
 2. 判断接口是否可以调用
-3. 修改接口数据库字段的状态字段为0
+3. 修改接口数据库字段的 isDelete 字段为0
 
 
 
@@ -662,15 +926,9 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 
 流程：
 
-1. 前端将用户输入的请求参数和要测试的接口 id 发给平台后端
+1. 将用户输入的请求参数和要测试的接口 id 发给平台后端
 2. （在调用前做一些校验）
 3. 平台后端去调用模拟接口
-
-
-
-
-
-
 
 
 
@@ -707,7 +965,7 @@ spring-boot-configuration-processor的作用是自动生成配置的代码提示
 
 哪个用户？哪个接口？
 
-用户 =》 接口（多对多）
+用户 => 接口（多对多）
 
 
 
@@ -732,15 +990,9 @@ create table if not exists user_interface_info
 
 
 
-
-
-
-
 ### 网关
 
 网关：可以理解成火车站的验票口，统一去验票。统一去进行一些操作、处理一些问题。
-
-
 
 #### 网关的作用
 
@@ -933,18 +1185,6 @@ Spring Cloud Gateway（替代Zuul）性能高、可以用Java代码来写逻辑
 - HTTP请求：HTTPClient、ResultTemplate、Fegin等
 - RPC（Dubbo）
 
-问题：
-
-预期是等模拟接口调用完成，才记录响应日志，统计调用次数；
-
-但现实是 chain.filter 方法立刻返回了，直到 filter 过滤器 return 后才能调用模拟接口；
-
-原因是：chain.filter 是一个异步操作；
-
-
-
-解决方案：利用装饰者增强
-
 
 
 ## 第六期
@@ -1051,14 +1291,6 @@ HTTP请求怎么调用？
 
 
 
-
-
-
-
-
-
-
-
 #### 开发统计分析
 
 ##### 需求
@@ -1068,12 +1300,4 @@ HTTP请求怎么调用？
 ```sql
 select interfacterInfo , sum(totalNum) as totalNum from userInterInfo group by interfaceInfoId order by total desc limit 3 
 ```
-
-
-
-
-
-
-
-
 
