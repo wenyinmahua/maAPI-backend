@@ -2,7 +2,6 @@ package com.mahua.mahuaapiinterface.controller;
 
 
 import com.mahua.mahuaclientsdk.model.User;
-import com.mahua.mahuaclientsdk.utils.SignUtil;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -10,8 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 @RestController
 @RequestMapping("/name")
 public class InterfaceController {
-
-	private final Long FIVE_MINUTE=60*5l;
 
 	@GetMapping("/get")
 	public String getNameByGet(String name,HttpServletRequest request){

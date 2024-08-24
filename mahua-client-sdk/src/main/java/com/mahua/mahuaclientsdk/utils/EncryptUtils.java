@@ -15,7 +15,7 @@ import java.util.Base64;
 /**
  * Ed25519 签名工具类
  */
-public class EncryptUtil {
+public class EncryptUtils {
 
 	/**
 	 * 生成密钥对，包含公钥和私钥
@@ -30,8 +30,8 @@ public class EncryptUtil {
 		byte[] privateKeyBytes = privateKeyParams.getEncoded();
 		byte[] publicKeyBytes = publicKeyParams.getEncoded();
 		// Base64 编码将 byte 数组转换成字符串，方便存储在数据库中
-		keyPair.setPrivateKey(Base64.getEncoder().encodeToString(privateKeyBytes));
-		keyPair.setPublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
+		keyPair.setSecretKet(Base64.getEncoder().encodeToString(privateKeyBytes));
+		keyPair.setAccessKey(Base64.getEncoder().encodeToString(publicKeyBytes));
 		return keyPair;
 	}
 
@@ -50,8 +50,7 @@ public class EncryptUtil {
 		signer.init(true, retrievedPrivateKeyParams);
 		signer.update(message, 0, message.length);
 		byte[] bytes = signer.generateSignature();
-		String sign = new String(bytes);
-		return sign;
+		return Base64.getEncoder().encodeToString(bytes);
 	}
 
 	/**

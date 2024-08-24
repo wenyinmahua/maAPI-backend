@@ -6,7 +6,7 @@ import com.mahua.maapicommon.model.entity.User;
 import com.mahua.maapicommon.service.InnerInterfaceService;
 import com.mahua.maapicommon.service.InnerUserService;
 import com.mahua.maapicommon.service.UserInterfaceInfoService;
-import com.mahua.mahuaclientsdk.utils.EncryptUtil;
+import com.mahua.mahuaclientsdk.utils.EncryptUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.dubbo.config.annotation.DubboReference;
 import org.reactivestreams.Publisher;
@@ -26,8 +26,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -105,8 +103,8 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 		}
 
 		// 从数据库中查出使用公钥，进行验签。
-		boolean verifySignResult = EncryptUtil.verifySign(accessKey, sign, body);
-		if(verifySignResult){
+		boolean verifySignResult = EncryptUtils.verifySign(accessKey, sign, body);
+		if(!verifySignResult){
 			return handleNoAuth(response);
 		}
 		// 5.从数据库中查询，请求的模拟接口是否存在，以及请求参数是否匹配

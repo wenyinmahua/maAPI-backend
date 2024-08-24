@@ -9,9 +9,9 @@ public class KeyPair {
 	/**
 	 * 公钥
 	 */
-	private String publicKey;
+	private String accessKey;
 	/**
 	 * 私钥
 	 */
-	private String privateKey;
+	private String secretKet;
 }

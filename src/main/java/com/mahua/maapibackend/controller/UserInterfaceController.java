@@ -114,7 +114,7 @@ public class UserInterfaceController {
     @PostMapping("/update")
     @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> updateUserInterface(@RequestBody UserInterfaceUpdateRequest userInterfaceUpdateRequest,
-                                            HttpServletRequest request) {
+                                                     HttpServletRequest request) {
         if (userInterfaceUpdateRequest == null || userInterfaceUpdateRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
@@ -206,107 +206,5 @@ public class UserInterfaceController {
     }
 
     // endregion
-
-    /**
-     * 发布
-     *
-     * @param interfaceOnlineOrOfflineRequest
-     * @return
-     */
-//    @PostMapping("/online")
-//    @AuthCheck(mustRole = "admin")
-//    public BaseResponse<Boolean> onlineUserInterface(@RequestBody UserInterfaceOnlineOrOfflineRequest interfaceOnlineOrOfflineRequest) {
-//        if (interfaceOnlineOrOfflineRequest == null || interfaceOnlineOrOfflineRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        UserInterfaceInfo interfaceInfo = new UserInterfaceInfo();
-//        BeanUtils.copyProperties(interfaceOnlineOrOfflineRequest, interfaceInfo);
-//        long id = interfaceOnlineOrOfflineRequest.getId();
-//        // 判断是否存在
-//        UserInterfaceInfo oldUserInterface = userUserInterfaceInfoService.getById(id);
-//        if (oldUserInterface == null) {
-//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-//        }
-//        // 判断接口是否可以调用
-//        com.mahua.mahuaclientsdk.model.User user = new com.mahua.mahuaclientsdk.model.User();
-//        user.setName("mahua");
-//        String username = maHuaAPIClient.getNameByPostJson(user);
-//        if(StringUtils.isBlank(username)){
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口验证失败");
-//        }
-//        UserInterfaceInfo onlineUserInterfaceInfo = new UserInterfaceInfo();
-//        onlineUserInterfaceInfo.setId(id);
-//        onlineUserInterfaceInfo.setStatus(UserInterfaceInfoStatusEnum.ONLINE.getValue());
-//        boolean result = userUserInterfaceInfoService.updateById(onlineUserInterfaceInfo);
-//        return ResultUtils.success(result);
-//    }
-
-    /**
-     * 下线
-     *
-     * @param interfaceOnlineOrOfflineRequest
-     * @return
-     */
-//    @PostMapping("/offline")
-//    @AuthCheck(mustRole = "admin")
-//    public BaseResponse<Boolean> offlineUserInterface(@RequestBody UserInterfaceOnlineOrOfflineRequest interfaceOnlineOrOfflineRequest) {
-//        if (interfaceOnlineOrOfflineRequest == null || interfaceOnlineOrOfflineRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        UserInterfaceInfo interfaceInfo = new UserInterfaceInfo();
-//        BeanUtils.copyProperties(interfaceOnlineOrOfflineRequest, interfaceInfo);
-//        long id = interfaceOnlineOrOfflineRequest.getId();
-//        // 判断是否存在
-//        UserInterfaceInfo oldUserInterface = userUserInterfaceInfoService.getById(id);
-//        if (oldUserInterface == null) {
-//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-//        }
-//        // 判断接口是否可以调用
-//        com.mahua.mahuaclientsdk.model.User user = new com.mahua.mahuaclientsdk.model.User();
-//        user.setName("test");
-//        String username = maHuaAPIClient.getNameByPostJson(user);
-//        if(StringUtils.isBlank(username)){
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口验证失败");
-//        }
-//        UserInterfaceInfo offlineUserInterfaceInfo = new UserInterfaceInfo();
-//        offlineUserInterfaceInfo.setId(id);
-//        offlineUserInterfaceInfo.setStatus(UserInterfaceInfoStatusEnum.OFFLINE.getValue());
-//        boolean result = userUserInterfaceInfoService.updateById(offlineUserInterfaceInfo);
-//        return ResultUtils.success(result);
-//    }
-//
-
-    /**
-     * 测试调用
-     *
-     * @param interfaceInfoInvokeRequest
-     * @return
-     */
-//    @PostMapping("/invoke")
-//    public BaseResponse<String> invokeUserInterface(@RequestBody UserInterfaceInfoInvokeRequest interfaceInfoInvokeRequest, HttpServletRequest request) {
-//        if (interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
-//            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-//        }
-//        long id = interfaceInfoInvokeRequest.getId();
-//        String userRequestParams = interfaceInfoInvokeRequest.getUserRequestParams();
-//        // 判断是否存在
-//        UserInterfaceInfo oldUserInterface = userUserInterfaceInfoService.getById(id);
-//        if (oldUserInterface == null) {
-//            throw new BusinessException(ErrorCode.NOT_FOUND_ERROR);
-//        }
-//        if (oldUserInterface.getStatus().intValue() == UserInterfaceInfoStatusEnum.OFFLINE.getValue()){
-//            throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口已下线");
-//        }
-//        User loginUser = userService.getLoginUser(request);
-//
-//        String accessKey = loginUser.getAccessKey();
-//        String secretKey = loginUser.getSecretKey();
-//        MaHuaAPIClient userAPIClient = new MaHuaAPIClient(accessKey,secretKey);
-//        Gson gson = new Gson();
-//        com.mahua.mahuaclientsdk.model.User user = gson.fromJson(userRequestParams, com.mahua.mahuaclientsdk.model.User.class);
-//        String nameByPostJson = userAPIClient.getNameByPostJson(user);
-//        return ResultUtils.success(nameByPostJson);
-//    }
-//
 
 }

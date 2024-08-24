@@ -1,5 +1,6 @@
 package com.mahua.mahuaclientsdk.client;
 
+import cn.hutool.core.net.URLEncodeUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
@@ -7,19 +8,18 @@ import cn.hutool.json.JSONUtil;
 import com.mahua.mahuaclientsdk.model.User;
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.mahua.mahuaclientsdk.utils.EncryptUtil.getSign;
+import static com.mahua.mahuaclientsdk.utils.EncryptUtils.getSign;
 @Slf4j
 public class MaHuaAPIClient {
 
 	private final String GATEWAY_URL = "http://localhost:8090";
 
-	private String accessKey;
-	private String secretKet;
+	private final String accessKey;
+	private final String secretKet;
 
 	public MaHuaAPIClient(String accessKey, String secretKet) {
 		this.accessKey = accessKey;
@@ -58,20 +58,14 @@ public class MaHuaAPIClient {
 
 	private Map<String, String> getHeaderMap(String body) {
 		Map<String,String> headers = new HashMap<>();
-
 		headers.put("accessKey",this.accessKey);
 		// 注意私钥一定不能发送，而是不同服务在后端中取出
-		// headers.put("secretKey",this.secretKet);
 		headers.put("nonce", RandomUtil.randomNumbers(4));
-		headers.put("body",body);
-//		try {
-//			headers.put("body", URLEncoder.encode(body,"utf-8"));
-//		} catch (UnsupportedEncodingException e) {
-//			log.error("body准换失败");
-//		}
+		// 如果放入的值是中文的话,会出现中文编码错误,这里需要重新编码,下面的方法签名也需要编码后的数据,否则会验签错误.
+		headers.put("body", URLEncodeUtil.encode(body, StandardCharsets.UTF_8));
 		headers.put("timestamp",String.valueOf(System.currentTimeMillis() / 1000));
 		// 使用私钥进行签名
-		headers.put("sign", getSign(body,secretKet));
+		headers.put("sign", getSign(URLEncodeUtil.encode(body, StandardCharsets.UTF_8),secretKet));
 		return headers;
 	}
 

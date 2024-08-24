@@ -20,24 +20,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class MaapiGatewayApplication {
 
-	@DubboReference
-	private DemoService demoService;
-
 	public static void main(String[] args) {
-
-		ConfigurableApplicationContext context = SpringApplication.run(MaapiGatewayApplication.class, args);
-		MaapiGatewayApplication application = context.getBean(MaapiGatewayApplication.class);
-		String result = application.doSayHello("world");
-		String result2 = application.doSayHello2("world");
-		System.out.println("result: " + result);
-		System.out.println("result: " + result2);
-
-	}
-
-	public String doSayHello(String name){
-		return demoService.sayHello(name);
-	}
-	public String doSayHello2(String name){
-		return demoService.sayHello2(name);
+		SpringApplication.run(MaapiGatewayApplication.class, args);
 	}
 }

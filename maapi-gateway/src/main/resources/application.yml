@@ -2,13 +2,6 @@ server:
   port: 8090
 
 spring:
-#  profiles:
-#    active: dev
-#  datasource:
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3307/mahuaapi
-#    username: root
-#    password: "030109"
   profiles:
     active: dev
   cloud:
@@ -36,4 +29,4 @@ dubbo:
     port: -1
   registry:
     id: nacos-registry
-    address: nacos://192.168.25.147:8848
+    address: nacos://192.168.183.137:8848
