@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mahua.mahuaapiinterface.mapper.PoemMapper">
+
+    <resultMap id="BaseResultMap" type="com.mahua.mahuaapiinterface.domain.Poem">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="dynasty" column="dynasty" jdbcType="VARCHAR"/>
+            <result property="author" column="author" jdbcType="VARCHAR"/>
+            <result property="content" column="content" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,title,dynasty,
+        author,context
+    </sql>
+    <select id="getRandomPoem" resultType="com.mahua.mahuaapiinterface.domain.Poem">
+        SELECT *
+        FROM poem
+        WHERE id >= (SELECT FLOOR(MAX(id) * RAND() + 1) FROM poem)
+        ORDER BY id
+            LIMIT 1;
+    </select>
+</mapper>
