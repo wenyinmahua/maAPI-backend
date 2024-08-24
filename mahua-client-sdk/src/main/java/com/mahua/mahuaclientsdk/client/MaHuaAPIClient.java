@@ -5,7 +5,11 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.http.HttpRequest;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
+import com.mahua.mahuaclientsdk.model.InterfaceInfoVO;
 import com.mahua.mahuaclientsdk.model.User;
+import com.mahua.mahuaclientsdk.strategy.InvokeStrategy;
+import com.mahua.mahuaclientsdk.strategy.impl.GetMethodStrategy;
+import com.mahua.mahuaclientsdk.strategy.impl.POSTMethodStrategy;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -67,6 +71,16 @@ public class MaHuaAPIClient {
 		// 使用私钥进行签名
 		headers.put("sign", getSign(URLEncodeUtil.encode(body, StandardCharsets.UTF_8),secretKet));
 		return headers;
+	}
+
+	public String invokeMethod(InterfaceInfoVO interfaceInfoVO){
+		InvokeStrategy strategy = null;
+		if (interfaceInfoVO.getMethod().equals("GET")){
+			strategy = new GetMethodStrategy();
+		}else if (interfaceInfoVO.getMethod().equals("POST")){
+			strategy = new POSTMethodStrategy();
+		}
+		return strategy.strategy(GATEWAY_URL,interfaceInfoVO,getHeaderMap(interfaceInfoVO.getRequestParams()));
 	}
 
 

@@ -18,6 +18,7 @@ import com.mahua.maapibackend.service.UserService;
 import com.mahua.maapicommon.model.entity.InterfaceInfo;
 import com.mahua.maapicommon.model.entity.User;
 import com.mahua.mahuaclientsdk.client.MaHuaAPIClient;
+import com.mahua.mahuaclientsdk.model.InterfaceInfoVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -300,9 +301,9 @@ public class InterfaceController {
         String accessKey = loginUser.getAccessKey();
         String secretKey = loginUser.getSecretKey();
         MaHuaAPIClient userAPIClient = new MaHuaAPIClient(accessKey,secretKey);
-        Gson gson = new Gson();
-        com.mahua.mahuaclientsdk.model.User user = gson.fromJson(userRequestParams, com.mahua.mahuaclientsdk.model.User.class);
-        String result = userAPIClient.getNameByPostJson(user);
+        InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
+        BeanUtils.copyProperties(oldInterface,interfaceInfoVO);
+        String result = userAPIClient.invokeMethod(interfaceInfoVO);
         if (result.equals("Error request, response status: 403")){
             throw new BusinessException(ErrorCode.NO_CALL_NUMBER,"无调用接口次数");
         }

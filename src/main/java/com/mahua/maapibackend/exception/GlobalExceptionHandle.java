@@ -1,9 +1,8 @@
-package com.mahua.maapibackend.controller;
+package com.mahua.maapibackend.exception;
 
 import com.mahua.maapibackend.common.BaseResponse;
 import com.mahua.maapibackend.common.ErrorCode;
 import com.mahua.maapibackend.common.ResultUtils;
-import com.mahua.maapibackend.exception.BusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
