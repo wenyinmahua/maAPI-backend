@@ -296,13 +296,17 @@ public class InterfaceController {
         if (oldInterface.getStatus().intValue() == InterfaceInfoStatusEnum.OFFLINE.getValue()){
             throw new BusinessException(ErrorCode.SYSTEM_ERROR,"接口已下线");
         }
+        InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
+        BeanUtils.copyProperties(oldInterface,interfaceInfoVO);
+        if(StringUtils.isEmpty(userRequestParams)){
+            userRequestParams = "maAPI";
+        }
+        interfaceInfoVO.setRequestParams(userRequestParams);
         User loginUser = userService.getLoginUser(request);
 
         String accessKey = loginUser.getAccessKey();
         String secretKey = loginUser.getSecretKey();
         MaHuaAPIClient userAPIClient = new MaHuaAPIClient(accessKey,secretKey);
-        InterfaceInfoVO interfaceInfoVO = new InterfaceInfoVO();
-        BeanUtils.copyProperties(oldInterface,interfaceInfoVO);
         String result = userAPIClient.invokeMethod(interfaceInfoVO);
         if (result.equals("Error request, response status: 403")){
             throw new BusinessException(ErrorCode.NO_CALL_NUMBER,"无调用接口次数");

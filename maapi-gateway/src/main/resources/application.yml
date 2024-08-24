@@ -10,7 +10,7 @@ spring:
         - id: api_route
           uri: http://localhost:8081/
           predicates:
-            - Path=/api/name/{api_url}
+            - Path=/api/service/{api_url}
 
 logging:
   level:

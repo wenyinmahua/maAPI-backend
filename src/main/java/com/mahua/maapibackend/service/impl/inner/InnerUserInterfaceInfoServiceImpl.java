@@ -40,7 +40,11 @@ public class InnerUserInterfaceInfoServiceImpl extends ServiceImpl<UserInterface
 		queryWrapper.eq("userId",userId);
 		queryWrapper.eq("interfaceInfoId",interfaceId);
 		UserInterfaceInfo userInterfaceInfo = this.getOne(queryWrapper);
-		return userInterfaceInfo.getLeftNum() <= 0;
+		if (userInterfaceInfo == null ||userInterfaceInfo.getLeftNum() <= 0){
+			return false;
+		}
+		return true;
+
 	}
 
 
@@ -50,8 +54,8 @@ public class InnerUserInterfaceInfoServiceImpl extends ServiceImpl<UserInterface
 			throw new BusinessException(ErrorCode.PARAMS_ERROR);
 		}
 		UpdateWrapper<UserInterfaceInfo> updateWrapper = new UpdateWrapper<>();
-		updateWrapper.set("interfaceInfoId",interfaceInfoId);
-		updateWrapper.set("userId",userId);
+		updateWrapper.eq("interfaceInfoId",interfaceInfoId);
+		updateWrapper.eq("userId",userId);
 		updateWrapper.gt("leftNum",0);
 		updateWrapper.setSql("leftNum = leftNum - 1, totalNum = totalNum + 1");
 		boolean result = this.update(updateWrapper);

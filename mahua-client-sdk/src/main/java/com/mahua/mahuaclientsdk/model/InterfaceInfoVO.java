@@ -1,39 +1,23 @@
 package com.mahua.mahuaclientsdk.model;
 
-import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
- * 接口名称
- * @TableName interface_info
+ * 接口
  */
 @Data
 public class InterfaceInfoVO implements Serializable {
 
-
     /**
-     * 接口名称
-     */
-    private String name;
-
-    /**
-     * 接口描述
-     */
-    private String description;
-
-    /**
-     * 请求类型
+     * 请求 URL
      */
     private String url;
 
     /**
-     * 地点
+     * 请求类型
      */
     private String method;
 
