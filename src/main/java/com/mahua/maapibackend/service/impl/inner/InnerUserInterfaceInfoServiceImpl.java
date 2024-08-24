@@ -1,5 +1,6 @@
 package com.mahua.maapibackend.service.impl.inner;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.mahua.maapibackend.common.ErrorCode;
@@ -33,6 +34,15 @@ public class InnerUserInterfaceInfoServiceImpl extends ServiceImpl<UserInterface
 		}
 	}
 
+	@Override
+	public boolean validUserCallNumber(Long interfaceId, Long userId) {
+		QueryWrapper<UserInterfaceInfo> queryWrapper  = new QueryWrapper<>();
+		queryWrapper.eq("userId",userId);
+		queryWrapper.eq("interfaceInfoId",interfaceId);
+		UserInterfaceInfo userInterfaceInfo = this.getOne(queryWrapper);
+		return userInterfaceInfo.getLeftNum() <= 0;
+	}
+
 
 	@Override
 	public boolean invokeCount(long interfaceInfoId, long userId) {
@@ -44,7 +54,11 @@ public class InnerUserInterfaceInfoServiceImpl extends ServiceImpl<UserInterface
 		updateWrapper.set("userId",userId);
 		updateWrapper.gt("leftNum",0);
 		updateWrapper.setSql("leftNum = leftNum - 1, totalNum = totalNum + 1");
-		return this.update(updateWrapper);
+		boolean result = this.update(updateWrapper);
+		if (!result){
+			throw new BusinessException(ErrorCode.NO_CALL_NUMBER,"调用次数已用完");
+		}
+		return result;
 	}
 }
 

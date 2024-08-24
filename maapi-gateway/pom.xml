@@ -101,7 +101,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.mahua.maapigateway.MaapiGatewayApplication</mainClass>
+                    <mainClass>com.mahua.MaapiGatewayApplication</mainClass>
                     <skip>true</skip>
                 </configuration>
                 <executions>

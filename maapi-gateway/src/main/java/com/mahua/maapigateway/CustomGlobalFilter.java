@@ -49,7 +49,7 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 	@DubboReference
 	private UserInterfaceInfoService userInterfaceInfoService;
 
-	private static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1");
+	private static final List<String> IP_WHITE_LIST = Arrays.asList("127.0.0.1","139.199.168.219");
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
 		// 1.用户发送请求到 API 网关
@@ -63,9 +63,9 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 		log.info("请求源地址" + request.getRemoteAddress().getHostString());
 		// 3.黑白名单
 		ServerHttpResponse response = exchange.getResponse();
-//		if (!IP_WHITE_LIST.contains(request.getLocalAddress().getHostString())){
-//			return handleNoAuth(response);
-//		}
+		if (!IP_WHITE_LIST.contains(request.getLocalAddress().getHostString())){
+			return handleNoAuth(response);
+		}
 		// 4.用户鉴权
 		HttpHeaders headers = request.getHeaders();
 		String accessKey = headers.getFirst("accessKey");
@@ -73,11 +73,6 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 		String timestamp = headers.getFirst("timestamp");
 		String sign = headers.getFirst("sign");
 		String body = headers.getFirst("body");
-//		try {
-//			body = URLDecoder.decode(headers.getFirst("body"),"utf-8");
-//		} catch (UnsupportedEncodingException e) {
-//			throw new RuntimeException(e);
-//		}
 
 		if(Long.valueOf(nonce) > 10000){
 			return handleNoAuth(response);
@@ -114,6 +109,12 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 			interfaceInfo = innerInterfaceService.getInterfaceInfo(path, method);
 		}catch (Exception e){
 			log.error("getInvokeUser error", e);
+		}
+		Long userId = invokeUser.getId();
+		Long interfaceId = interfaceInfo.getId();
+		boolean canCall = userInterfaceInfoService.validUserCallNumber(interfaceId, userId);
+		if (!canCall){
+			return handlerNoCallNumber(response);
 		}
 		// 6.请求转发，调用模拟接口 + 响应日志
 		log.info("响应："+response.getStatusCode());
@@ -190,6 +191,11 @@ public class CustomGlobalFilter implements GlobalFilter, Ordered {
 
 	public Mono<Void> handleInvokeError(ServerHttpResponse response){
 		response.setStatusCode(HttpStatus.SERVICE_UNAVAILABLE);
+		return response.setComplete();
+	}
+
+	public Mono<Void> handlerNoCallNumber(ServerHttpResponse response){
+		response.setStatusCode(HttpStatus.FORBIDDEN);
 		return response.setComplete();
 	}
 

@@ -5,6 +5,7 @@ public enum ErrorCode {
 	PARAMS_ERROR(40000, "请求参数错误"),
 	NOT_LOGIN_ERROR(40100, "未登录"),
 	NO_AUTH_ERROR(40101, "无权限"),
+	NO_CALL_NUMBER(40102, "调用次数已用完"),
 	NOT_FOUND_ERROR(40400, "请求数据不存在"),
 	FORBIDDEN_ERROR(40300, "禁止访问"),
 	SYSTEM_ERROR(50000, "系统内部异常"),

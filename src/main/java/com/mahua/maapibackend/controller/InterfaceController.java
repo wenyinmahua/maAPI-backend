@@ -280,7 +280,7 @@ public class InterfaceController {
      * @return
      */
     @PostMapping("/invoke")
-    @AuthCheck(mustRole = "admin")
+    @AuthCheck(anyRole = {"admin","user"})
     public BaseResponse<String> invokeInterface(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest, HttpServletRequest request) {
         if (interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -302,8 +302,11 @@ public class InterfaceController {
         MaHuaAPIClient userAPIClient = new MaHuaAPIClient(accessKey,secretKey);
         Gson gson = new Gson();
         com.mahua.mahuaclientsdk.model.User user = gson.fromJson(userRequestParams, com.mahua.mahuaclientsdk.model.User.class);
-        String nameByPostJson = userAPIClient.getNameByPostJson(user);
-        return ResultUtils.success(nameByPostJson);
+        String result = userAPIClient.getNameByPostJson(user);
+        if (result.equals("Error request, response status: 403")){
+            throw new BusinessException(ErrorCode.NO_CALL_NUMBER,"无调用接口次数");
+        }
+        return ResultUtils.success(result);
     }
 
 
