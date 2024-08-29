@@ -638,8 +638,7 @@ public class EncryptUtil {
 		signer.init(true, retrievedPrivateKeyParams);
 		signer.update(message, 0, message.length);
 		byte[] bytes = signer.generateSignature();
-		String sign = new String(bytes);
-		return sign;
+		return Base64.getEncoder().encodeToString(bytes);
 	}
 
 	/**
