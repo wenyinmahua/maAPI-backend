@@ -9,6 +9,8 @@ import com.mahua.maapibackend.exception.BusinessException;
 import com.mahua.maapibackend.mapper.UserMapper;
 import com.mahua.maapibackend.service.UserService;
 import com.mahua.maapicommon.model.entity.User;
+import com.mahua.mahuaclientsdk.utils.EncryptUtils;
+import com.mahua.mahuaclientsdk.utils.KeyPair;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.dubbo.config.annotation.DubboService;
@@ -63,8 +65,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 			// 2. 加密
 			String encryptPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
 			// 3. 插入数据
-			String accessKey = DigestUtils.md5DigestAsHex((SALT + userAccount + RandomUtil.randomNumbers(5)).getBytes());
-			String secretKey = DigestUtils.md5DigestAsHex((SALT+ userAccount + RandomUtil.randomNumbers(5)).getBytes());
+			KeyPair keys = EncryptUtils.getKeys();
+			String accessKey = keys.getAccessKey();
+			String secretKey = keys.getSecretKet();
 			User user = new User();
 			user.setUserAccount(userAccount);
 			user.setUserPassword(encryptPassword);

@@ -1,4 +1,4 @@
-package com.mahua.mahuaclientsdk.model;
+package com.mahua.mahuaclientsdk.utils;
 
 import lombok.Data;
 import lombok.ToString;

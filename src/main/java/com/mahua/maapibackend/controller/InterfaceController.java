@@ -303,7 +303,6 @@ public class InterfaceController {
         }
         interfaceInfoVO.setRequestParams(userRequestParams);
         User loginUser = userService.getLoginUser(request);
-
         String accessKey = loginUser.getAccessKey();
         String secretKey = loginUser.getSecretKey();
         MaHuaAPIClient userAPIClient = new MaHuaAPIClient(accessKey,secretKey);

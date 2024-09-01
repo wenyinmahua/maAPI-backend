@@ -1,6 +1,5 @@
 package com.mahua.mahuaclientsdk.utils;
 
-import com.mahua.mahuaclientsdk.model.KeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.generators.Ed25519KeyPairGenerator;
 import org.bouncycastle.crypto.params.Ed25519KeyGenerationParameters;
@@ -36,7 +35,7 @@ public class EncryptUtils {
 	}
 
 	/**
-	 * 对请求数据使用私钥钥进行签名
+	 * 对请求数据使用私钥进行签名
 	 * @param param 请求数据
 	 * @param privateKey 密钥
 	 * @return
