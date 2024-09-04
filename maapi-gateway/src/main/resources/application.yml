@@ -11,6 +11,8 @@ spring:
           uri: http://localhost:8081/
           predicates:
             - Path=/api/service/{api_url}
+          filters:
+            - AddRequestHeader=gateway,maAPI
 
 logging:
   level:
