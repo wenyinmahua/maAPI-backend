@@ -63,6 +63,11 @@ public class User implements Serializable {
     private String secretKey;
 
     /**
+     * 邮箱
+     */
+    private String email;
+
+    /**
      * 创建时间
      */
     private Date createTime;
