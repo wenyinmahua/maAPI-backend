@@ -89,4 +89,12 @@ public class InterfaceController {
 		return HttpRequest.get(url).execute().body();
 	}
 
+	@GetMapping("/weather")
+	public String getWeather(){
+		String url = "https://api.vvhan.com/api/weather";
+		String resopne = HttpRequest.get(url).execute().body();
+		return resopne;
+	}
+
+
 }
