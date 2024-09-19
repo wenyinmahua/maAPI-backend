@@ -9,6 +9,7 @@ import com.mahua.mahuaapiinterface.utils.PhoneNumberValidator;
 import com.mahua.mahuaclientsdk.model.User;
 import com.mahua.mahuaclientsdk.model.response.PhoneNumberLocationResponse;
 import com.mahua.mahuaclientsdk.model.response.PublicIPResponse;
+import com.mahua.mahuaclientsdk.model.response.WeiboHotResponse;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -95,6 +96,19 @@ public class InterfaceController {
 		String resopne = HttpRequest.get(url).execute().body();
 		return resopne;
 	}
+	@GetMapping("/weibo/hot")
+	public String getWeiboHot(){
+		String url = "https://api-hot.efefee.cn/weibo?cache=true";
+		String resopne = HttpRequest.get(url).execute().body();
+		JSONObject jsonObject = new JSONObject(resopne);
+		WeiboHotResponse weiboHotResponse = new WeiboHotResponse();
+		weiboHotResponse.setLink(jsonObject.getStr("link"));
+		weiboHotResponse.setData(jsonObject.getStr("data"));
+
+		return weiboHotResponse.toString();
+	}
+
+
 
 
 }
