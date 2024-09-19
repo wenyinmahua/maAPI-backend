@@ -2,13 +2,13 @@ package com.mahua.maapibackend.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import com.google.gson.Gson;
 import com.mahua.maapibackend.annotation.AuthCheck;
 import com.mahua.maapibackend.common.BaseResponse;
 import com.mahua.maapibackend.common.DeleteRequest;
 import com.mahua.maapibackend.common.ErrorCode;
 import com.mahua.maapibackend.common.ResultUtils;
 import com.mahua.maapibackend.constant.CommonConstant;
+import com.mahua.maapibackend.constant.UserConstant;
 import com.mahua.maapibackend.exception.BusinessException;
 import com.mahua.maapibackend.model.dto.interfaceinfo.*;
 
@@ -158,7 +158,7 @@ public class InterfaceController {
      * @param interfaceQueryRequest
      * @return
      */
-    @AuthCheck(mustRole = "admin")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     @GetMapping("/list")
     public BaseResponse<List<InterfaceInfo>> listInterface(InterfaceQueryRequest interfaceQueryRequest) {
         InterfaceInfo interfaceQuery = new InterfaceInfo();
@@ -212,7 +212,7 @@ public class InterfaceController {
      * @return
      */
     @PostMapping("/online")
-    @AuthCheck(mustRole = "admin")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> onlineInterface(@RequestBody InterfaceOnlineOrOfflineRequest interfaceOnlineOrOfflineRequest) {
         if (interfaceOnlineOrOfflineRequest == null || interfaceOnlineOrOfflineRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -246,7 +246,7 @@ public class InterfaceController {
      * @return
      */
     @PostMapping("/offline")
-    @AuthCheck(mustRole = "admin")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
     public BaseResponse<Boolean> offlineInterface(@RequestBody InterfaceOnlineOrOfflineRequest interfaceOnlineOrOfflineRequest) {
         if (interfaceOnlineOrOfflineRequest == null || interfaceOnlineOrOfflineRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -281,7 +281,7 @@ public class InterfaceController {
      * @return
      */
     @PostMapping("/invoke")
-    @AuthCheck(anyRole = {"admin","user"})
+    @AuthCheck(anyRole = {UserConstant.ADMIN_ROLE,UserConstant.DEFAULT_ROLE})
     public BaseResponse<String> invokeInterface(@RequestBody InterfaceInfoInvokeRequest interfaceInfoInvokeRequest, HttpServletRequest request) {
         if (interfaceInfoInvokeRequest == null || interfaceInfoInvokeRequest.getId() <= 0) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
